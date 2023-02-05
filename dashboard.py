@@ -1,42 +1,84 @@
 import time as t
-import math as m
+from sqlite3 import connect
 
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 
-def ensoleillement(t) :
-    return max(0, -m.cos(2*m.pi*t/24))
 
-T = [t/2 for t in range(48)]
-data = [ensoleillement(t) for t in T]
+# Setup
+
+st.set_page_config(layout="wide")
+
+con = connect("data.sql", isolation_level=None)
+cursor = con.cursor()
+
+
+# Classes
 
 class Dashboard :
     def __init__(self) -> None:
         self.main_container = st.container()
-        self.top_cols = list(self.main_container.columns(3))
-        self.top_left = self.top_cols[0].empty()
-        self.top_mid = self.top_cols[1].empty()
-        self.top_right = self.top_cols[2].empty()
-        self.bottom_cols = list(self.main_container.columns(3))
-        self.bottom_left = self.bottom_cols[0].empty()
-        self.bottom_mid = self.bottom_cols[1].empty()
-        self.bottom_right = self.bottom_cols[2].empty()
+        self.left, self.right = self.main_container.columns(2)
+        top, bottom = self.left.empty(), self.left.empty()
+        self.left = [top, bottom]
+        top, bottom = self.right.empty(), self.right.empty()
+        self.rooms = [self.right.empty() for _ in range(4)]
+        self.right = [top, bottom]
     
     def update(self) :
-        data.append(data.pop(0))
-        self.top_left.line_chart(
-            pd.DataFrame(data=data, index=T, columns=["truncated sine"])
+        self.left[0].line_chart(
+            pd.read_sql_query("""--sql
+            SELECT timestamp_, tread_motor_rot AS "Treadmill Motor Rotation"
+            FROM Sensors
+            ORDER BY timestamp_ DESC LIMIT 100
+            ;""", con=con, index_col="timestamp_")
         )
-        self.bottom_right.line_chart(
-            pd.DataFrame(data=data[::-1], index=T, columns=["reverse truncated sine"])
+        self.left[1].line_chart(
+            pd.read_sql_query("""--sql
+            SELECT timestamp_, tread_motor_turns AS "Treadmill Motor Turns"
+            FROM Sensors
+            ORDER BY timestamp_ DESC LIMIT 100
+            ;""", con=con, index_col="timestamp_")
         )
+
+        self.right[0].line_chart(
+            pd.read_sql_query("""--sql
+            SELECT timestamp_, room_nb AS "Current Location"
+            FROM Sensors
+            ORDER BY timestamp_ DESC LIMIT 100
+            ;""", con=con, index_col="timestamp_")
+        )
+
+        cursor.execute(f"""--sql
+            SELECT {", ".join("room_led_"+str(i+1) for i in range(4))}
+            FROM Sensors
+            ORDER BY timestamp_ DESC
+        ;""")
+        room_states = cursor.fetchone()
+        for i in range(4) :
+
+            if room_states[i] :
+                bg_col = "white"
+                txt_col = "black"
+            else :
+                bg_col = "black"
+                txt_col = "white"
+
+            self.rooms[i].markdown(
+                f"<h1 style='background-color:{bg_col}; color:{txt_col}; text-align:center;'>Room {i+1}</h1>",
+                unsafe_allow_html=True
+            )
     
     def run(self) :
         while True :
             t0 = t.time()
             self.update()
-            t.sleep(1)
+            while t.time() - t0 < 1 :
+                t.sleep(0.01)
+
+
+# Main
 
 if __name__ == "__main__" :
     db = Dashboard()

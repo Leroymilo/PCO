@@ -34,7 +34,7 @@ if __name__ == "__main__" :
         query = f"""--sql
         INSERT INTO Sensors VALUES
         (
-            {datetime.now()},
+            {datetime.now().timestamp()},
             {rot}, {turns}, {room},
             {", ".join(str(i+1 == room) for i in range(4))}
         )

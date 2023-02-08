@@ -19,13 +19,31 @@ cursor = con.cursor()
 class Dashboard :
     def __init__(self) -> None:
         self.main_container = st.container()
-        self.left, self.right = self.main_container.columns(2)
-        top, bottom = self.left.empty(), self.left.empty()
-        self.left = [top, bottom]
-        top, bottom = self.right.empty(), self.right.empty()
-        self.rooms = [self.right.empty() for _ in range(4)]
-        self.right = [top, bottom]
+        self.rows = []
+
+        self.add_row(2)
+        self.add_row(3, [2, 1, 1], [2, 1, 1])
+        
+        self.left[2].slider("Motor Speed", 0, 90, 90)
     
+    def add_row(self, nb_cols: int = 1, layout: list[int] = None, spaces: list[int] = None) :
+        if layout is None :
+            layout = [1 for _ in range(nb_cols)]
+        elif len(layout) < nb_cols :
+            layout += [1 for _ in range(nb_cols - len(layout))]
+
+        if spaces is None :
+            spaces = [1 for _ in range(nb_cols)]
+        elif len(spaces) < nb_cols :
+            spaces += [1 for _ in range(nb_cols - len(spaces))]
+
+        columns = self.main_container.columns(nb_cols, layout)
+        elements = []
+        for i in range(nb_cols) :
+            column = [columns[i].empty() for _ in range(spaces[i])]
+            elements.append(column)
+        self.rows.append(elements)
+
     def update(self) :
         self.left[0].line_chart(
             pd.read_sql_query("""--sql
@@ -34,12 +52,12 @@ class Dashboard :
             ORDER BY timestamp_ DESC LIMIT 100
             ;""", con=con, index_col="timestamp_")
         )
-        self.left[1].line_chart(
-            pd.read_sql_query("""--sql
-            SELECT timestamp_, tread_motor_turns AS "Treadmill Motor Turns"
-            FROM Sensors
-            ORDER BY timestamp_ DESC LIMIT 100
-            ;""", con=con, index_col="timestamp_")
+
+        cursor.execute("""--sql
+        SELECT tread_motor_turns FROM Sensors ORDER BY timestamp_ DESC
+        ;""")
+        self.left[1].markdown(
+            body=f"Treadmill Motor turns : {cursor.fetchone()[0]}"
         )
 
         self.right[0].line_chart(

@@ -35,7 +35,7 @@ class Dashboard :
         self.add_row(3, [2, 1, 1], [2, 2, 2])
         self.add_row(2, [1, 1], [2, 1])
         
-        self.speed = self.rows[1][0][1].slider("Motor Speed", 0, 180, 180, on_change=update_speed, key="speed_slider")
+        self.speed = self.rows[1][0][1].slider("Motor Speed", 0, 180, 60, on_change=update_speed, key="speed_slider")
         self.rows[2][0][0].write("# Percentage of LED lighting :")
         leds = self.rows[2][0][1].number_input("text", 0, 100, 25, label_visibility="hidden")
         self.rows[2][1].write(f"# ROI : {leds*200}k€")

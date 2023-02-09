@@ -30,7 +30,7 @@ CREATE TABLE Parameters
     speed INT
 );""")
 cursor.execute("""--sql
-INSERT INTO Parameters VALUES (0, 135)
+INSERT INTO Parameters VALUES (0, 60)
 ;""")
 
 con.commit()

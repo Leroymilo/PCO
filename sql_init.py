@@ -19,3 +19,18 @@ CREATE TABLE Sensors
     room_led_4 BOOLEAN
 )
 ;""")
+
+cursor.execute("""--sql
+DROP TABLE IF EXISTS `Parameters`
+;""")
+cursor.execute("""--sql
+CREATE TABLE Parameters
+(
+    timestamp_ DATETIME PRIMARY KEY,
+    speed INT
+);""")
+cursor.execute("""--sql
+INSERT INTO Parameters VALUES (0, 135)
+;""")
+
+con.commit()

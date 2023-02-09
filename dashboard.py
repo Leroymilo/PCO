@@ -31,14 +31,12 @@ class Dashboard :
         self.main_container = st.container()
         self.rows: list[DG | list[DG | list[DG]]] = []
 
-        self.add_row(2)
-        self.add_row(3, [2, 1, 1], [2, 2, 2])
-        self.add_row(2, [1, 1], [2, 1])
+        self.add_row(3, [2, 1, 1], [1, 2, 2])
+        self.add_row(2, [1, 1], [3, 2])
         
-        self.speed = self.rows[1][0][1].slider("Motor Speed", 0, 180, 60, on_change=update_speed, key="speed_slider")
-        self.rows[2][0][0].write("# Percentage of LED lighting :")
-        leds = self.rows[2][0][1].number_input("text", 0, 100, 25, label_visibility="hidden")
-        self.rows[2][1].write(f"# ROI : {leds*200}k€")
+        self.speed = self.rows[1][0][2].slider("motor_speed", 60, 180, 60, on_change=update_speed, key="speed_slider", label_visibility="hidden")
+        leds = self.rows[1][1][0].number_input("Percentage of LED lighting :", 0, 100, 25)
+        self.rows[1][1][1].write(f"## ROI : {leds*200}k€")
     
     def add_row(self, nb_cols: int = 1, layout: list[int] = None, capacities: list[int] = None) :
         assert nb_cols > 0
@@ -79,22 +77,14 @@ class Dashboard :
             ;""", con=con, index_col="timestamp_")
         )
 
-        data1 = pd.read_sql_query("""--sql
+        data = pd.read_sql_query("""--sql
         SELECT tread_motor_turns FROM Sensors ORDER BY timestamp_ DESC LIMIT 1
         ;""", con=con)
-        data2 = pd.read_sql_query("""--sql
-        SELECT speed FROM Parameters ORDER BY timestamp_ DESC LIMIT 1
-        ;""", con=con)
         self.rows[1][0][0].markdown(
-            body=f"### Treadmill Motor turns : {data1.to_numpy()[0,0]}, Speed : {data2.to_numpy()[0,0]}"
+            body=f"""### Treadmill Motor turns : {data.to_numpy()[0,0]}"""
         )
-
-        self.rows[0][1].line_chart(
-            pd.read_sql_query("""--sql
-            SELECT timestamp_, room_nb AS "Current Location"
-            FROM Sensors
-            ORDER BY timestamp_ DESC LIMIT 100
-            ;""", con=con, index_col="timestamp_")
+        self.rows[1][0][1].markdown(
+            body=f"""### Motor Speed :"""
         )
 
         data = pd.read_sql_query(f"""--sql
@@ -113,7 +103,7 @@ class Dashboard :
                 bg_col = "black"
                 txt_col = "white"
 
-            self.rows[1][c[i]][s_r[i]].markdown(
+            self.rows[0][c[i]][s_r[i]].markdown(
                 f"<h1 style='background-color:{bg_col}; color:{txt_col}; text-align:center;'>Room {i+1}</h1>",
                 unsafe_allow_html=True
             )

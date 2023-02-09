@@ -42,7 +42,7 @@ if __name__ == "__main__" :
 
         # Actual simulation
         if speed > 0 :
-            time = (t.time() - T_INIT)/10
+            time = (t.time() - T_INIT) / 5
             rot += (time - last_time) * speed
             if rot >= 360 :
                 rot -= 360

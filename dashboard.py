@@ -73,7 +73,7 @@ class Dashboard :
             pd.read_sql_query("""--sql
             SELECT timestamp_, tread_motor_rot AS "Treadmill Motor Rotation"
             FROM Sensors
-            ORDER BY timestamp_ DESC LIMIT 100
+            ORDER BY timestamp_ DESC LIMIT 50
             ;""", con=con, index_col="timestamp_")
         )
 

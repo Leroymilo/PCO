@@ -19,7 +19,7 @@ ROOM_LENGTHS = [15, 20, 30, 35]
 SUM_LENGTHS = [15, 35, 65, 100]
 
 
-# Variables intialization
+# Variables initialization
 
 rot = 0
 turns = 0

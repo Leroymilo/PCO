@@ -17,3 +17,4 @@ Use Ctrl+C in the terminals to kill the scripts.
 # Modification :
 
 Don't forget to always `git pull <remote> <branch>` before editing the code to make sure you're working on the latest version.
+Then use : `git add -A`, `git commit -m "commit message"`, `git push -u <remote> <branch>`.

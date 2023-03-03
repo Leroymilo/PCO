@@ -1,9 +1,9 @@
 import streamlit as st
 import psycopg2
 
-# HOST : str = "255.255.211.1"
-# PORT : str = "5000"
-# USER : str = "user"
+# HOST : str = "localhost"
+# PORT : str = "5432"
+# USER : str = "postgres"
 # PWD : str = "password"
 # DATABASE : str = "DB_PCO"
 

@@ -7,9 +7,6 @@ class Room :
     def __init__(self, id: int, name: str) -> None:
         self.id = id
         self.name = name
-        self.detect = False
-        self.variate = False
-        self.variation = 100
         self.cont: DG = None
 
         self.init_push()
@@ -17,24 +14,31 @@ class Room :
     def loop(self, cont: DG) :
         self.cont = cont
         
-        self.cont.markdown(f"# {self.name}")
-        self.detect = self.cont.checkbox(
-            "Détecteur de présence",
-            key=200+self.id,
-            on_change=self.push
-        )
-        self.variate = self.cont.checkbox(
-            "Variateur de luminosité",
-            key=300+self.id,
-            on_change=self.push
-        )
-        self.variation = self.cont.slider(
-            "Luminosité",
-            0, 100, 100, 1,
-            key=400+self.id,
-            on_change=self.push,
-            disabled=(not self.variate)
-        )
+        with self.cont :
+
+            st.markdown(f"## {self.name}")
+
+            st.checkbox(
+                label="Détecteur de présence", 
+                key=200+self.id,
+                value=False,
+                on_change=self.push
+            )
+
+            var = st.checkbox(
+                label="Variateur de luminosité",
+                key=300+self.id,
+                value=False,
+                on_change=self.push
+            )
+
+            st.slider(
+                "Luminosité",
+                0, 100, 100, 1,
+                key=400+self.id,
+                on_change=self.push,
+                disabled=(not var)
+            )
 
     def init_push(self) :
         print("initial push")
@@ -70,6 +74,7 @@ class Room :
             TRUE
         )
         """
+        
         # print(query)
 
         pgsql.cur.execute(query)

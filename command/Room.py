@@ -1,5 +1,9 @@
+import json
+
 import streamlit as st
 from streamlit.delta_generator import DeltaGenerator as DG
+
+import mqtt_init as mqtt
 
 import pgsql_init as pgsql
 
@@ -9,7 +13,7 @@ class Room :
         self.name = name
         self.cont: DG = None
 
-        self.init_push()
+        self.push(initial=True)
 
     def loop(self, cont: DG) :
         self.cont = cont
@@ -40,46 +44,52 @@ class Room :
                 disabled=(not var)
             )
 
-    def init_push(self) :
-        print("initial push")
+    def push_pgsql(self, initial=False) :
 
-        query = f"""-- sql
-        INSERT INTO public."RoomCommand"
-        VALUES (
-            NOW()::TIMESTAMP,
-            {self.id},
-            FALSE,
-            FALSE,
-            100,
-            TRUE
-        )
-        """
-        # print(query)
-
-        pgsql.cur.execute(query)
-
-        pgsql.con.commit()
-    
-    def push(self) :
-        print("push")
-
-        query = f"""-- sql
-        INSERT INTO public."RoomCommand"
-        VALUES (
-            NOW()::TIMESTAMP,
-            {self.id},
-            {st.session_state[200+self.id]},
-            {st.session_state[300+self.id]},
-            {st.session_state[400+self.id]},
-            TRUE
-        )
-        """
+        if initial :
+            values = ("FALSE", "FALSE", "100")
         
-        # print(query)
+        else :
+            values = tuple(map(str, [
+                st.session_state[100*i+self.id] for i in range(2, 5)
+            ]))
+
+        query = f"""-- sql
+        INSERT INTO public."RoomCommand"
+        VALUES (
+            NOW()::TIMESTAMP,
+            {self.id},
+            {', '.join(values)},
+            TRUE
+        )
+        """
 
         pgsql.cur.execute(query)
 
         pgsql.con.commit()
+
+    def push_mqtt(self, initial=False) :
+        if initial :
+            payload = {
+                "room_id": self.id,
+                "detect": False,
+                "variate": False,
+                "lum_prct": 100
+            }
+        
+        else :
+            payload = {
+                "room_id": self.id,
+                "detect": st.session_state[200+self.id],
+                "variate": st.session_state[300+self.id],
+                "lum_prct": st.session_state[400*i+self.id]
+            }
+        
+        mqtt.client.publish("LEDS_PCO", payload=json.dumps(payload))
+
+    def push(self, initial=False) :
+        print("pushing")
+        self.push_pgsql(initial=initial)
     
     def __hash__(self) -> int:
         return self.id

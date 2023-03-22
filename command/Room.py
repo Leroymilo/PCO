@@ -82,14 +82,19 @@ class Room :
                 "room_id": self.id,
                 "detect": st.session_state[200+self.id],
                 "variate": st.session_state[300+self.id],
-                "lum_prct": st.session_state[400*i+self.id]
+                "lum_prct": st.session_state[400+self.id]
             }
+
+        print("mqtt payload :", payload)
         
-        mqtt.client.publish("LEDS_PCO", payload=json.dumps(payload))
+        info = mqtt.client.publish("LEDS_PCO", payload=json.dumps(payload))
+        info.wait_for_publish()
+        print("message published !")
 
     def push(self, initial=False) :
         print("pushing")
         self.push_pgsql(initial=initial)
+        self.push_mqtt(initial=initial)
     
     def __hash__(self) -> int:
         return self.id

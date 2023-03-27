@@ -4,7 +4,7 @@ print("defining client")
 client = mqtt.Client(client_id="2", clean_session=True, userdata=None, protocol=mqtt.MQTTv311, transport="tcp")
 
 print("connecting client")
-client.connect("192.168.66.26", port=1883, keepalive=60, bind_address="")
+client.connect("localhost", port=1883, keepalive=60, bind_address="")
 
 print("subscribing to topic 'test'")
 client.subscribe("test")

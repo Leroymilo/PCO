@@ -84,15 +84,9 @@ reset()
 if __name__ == "__main__" :
 
     cur.execute("""-- sql
-    SELECT DISTINCT table_name
+    SELECT table_name, column_name
     FROM information_schema.columns
-    ORDER BY table_name
-    """)
-
-    print(*cur.fetchall(), sep='\n')
-
-    cur.execute("""-- sql
-    SELECT * FROM public."RoomCommand"
+    WHERE table_name in ('GlobalData', 'RoomCommand', 'RoomData')
     """)
 
     print(*cur.fetchall(), sep='\n')

@@ -12,7 +12,7 @@ int nb_leds = 4;
 const char* ssid = "";
 const char* password = "";
 
-const char* mqtt_server = "192.168.123.26";
+const char* mqtt_server = "localhost";
 const int mqtt_port = 1883;
 
 const char* mqtt_topic = "LEDS_PCO";

@@ -1,0 +1,94 @@
+# docker-compose up -d
+# docker-compose stop
+# docker compose up --force-recreate -d [service]
+# docker-compose down (supprimer les images et les reseaux)
+# docker-compose down -v (supprimer les volumes)
+# docker inspect <container>
+# docker-compose ps
+# docker exec -it <container> /bin/bash
+
+
+
+
+version: "3.7"
+
+services:
+
+  nifi:
+    build:
+      context: .
+      dockerfile: nifi.dockerfile
+    image: coi_nifi
+    container_name: nifi01
+    environment:
+      - SINGLE_USER_CREDENTIALS_USERNAME=admin
+      - SINGLE_USER_CREDENTIALS_PASSWORD=password123456
+      #- NIFI_WEB_HTTPS_PORT=8443
+      #- NIFI_WEB_HTTPS_HOST=192.168.0.50
+    volumes:
+#      - ./volumes/nifi_state:/opt/nifi/nifi-current/state
+#      - ./volumes/nifi_db:/opt/nifi/nifi-current/database_repository
+#      - ./volumes/nifi_flowfile:/opt/nifi/nifi-current/flowfile_repository
+#      - ./volumes/nifi_content:/opt/nifi/nifi-current/content_repository
+#      - ./volumes/nifi_provenance:/opt/nifi/nifi-current/provenance_repository
+      - ./volumes/nifi_conf:/opt/nifi/nifi-current/conf
+    ports:
+      - 8443:8443
+      - 4040:4040 #http endpoint port
+
+    networks:
+      - data_manufacture
+
+
+  rabbitmq:
+    #image: rabbitmq:3-management
+    build:
+      context: .
+      dockerfile: rabbitmq.dockerfile
+    image: coi_rabbitmq
+    container_name: rabbitmq01
+    volumes:
+      - ./conf/myrabbit.conf:/etc/rabbitmq/rabbitmq.config
+    ports:
+      - 15672:15672 # web interface
+      - 1883:1883   # mqqt plugin
+      - 8883:8883   # mqtt plugin secured
+      - 5672:5672   # amqp
+    networks:
+      - data_manufacture
+
+
+  postgres:
+    image: postgres:alpine3.15
+    container_name: postgres01
+    environment:
+      - POSTGRES_PASSWORD=password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - data_manufacture
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin01
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=coi-scd@outlook.com
+      - PGADMIN_DEFAULT_PASSWORD=password
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin/
+    ports:
+      - 8081:80
+    networks:
+      - data_manufacture
+
+volumes:
+  pgadmin-data:
+    driver: local
+  postgres-data:
+    driver: local
+
+
+networks:
+  data_manufacture:

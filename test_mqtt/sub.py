@@ -1,24 +1,26 @@
 import paho.mqtt.client as mqtt
 
+from datetime import datetime
+
 print("defining client")
-client = mqtt.Client(client_id="2", clean_session=True, userdata=None, protocol=mqtt.MQTTv311, transport="tcp")
+client = mqtt.Client(client_id="python subscriber", clean_session=True, userdata=None, protocol=mqtt.MQTTv311, transport="tcp")
 
 print("connecting client")
 client.connect("localhost", port=1883, keepalive=60, bind_address="")
 
-print("subscribing to topic 'test'")
-client.subscribe("test")
+print("subscribing to topic 'test_out'")
+client.subscribe("test_out")
 
 stop = False
 
 def custom_on_msg(client: mqtt.Client, userdata, message: mqtt.MQTTMessage) :
-    print("message received " ,str(message.payload.decode("utf-8")))
-    print("message topic=",message.topic)
-    print("message qos=",message.qos)
-    print("message retain flag=",message.retain)
+    print("message received :" ,str(message.payload.decode("utf-8")), "at", datetime.now().strftime("%H:%M:%S"))
+    print("message topic :",message.topic)
+    print("message qos =",message.qos)
+    print("message retain flag =",message.retain)
 
-    global stop
-    stop = True
+    # global stop
+    # stop = True
 
 client.on_message = custom_on_msg
 print("starting client loop")

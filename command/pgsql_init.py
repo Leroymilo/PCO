@@ -13,6 +13,24 @@ def reset() :
     print("Reseting tables...")
 
     cur.execute("""-- sql
+    -- Table: public.GlobalCommand
+
+    DROP TABLE IF EXISTS public."GlobalCommand";
+
+    CREATE TABLE IF NOT EXISTS public."GlobalCommand"
+    (
+        "timestamp" timestamp(3) without time zone NOT NULL,
+        on_ boolean NOT NULL DEFAULT 'false',
+        CONSTRAINT "GlobalCommand_pkey" PRIMARY KEY ("timestamp")
+    )
+
+    TABLESPACE pg_default;
+
+    ALTER TABLE IF EXISTS public."GlobalCommand"
+        OWNER to postgres;
+    """)
+
+    cur.execute("""-- sql
     -- Table: public.GlobalData
 
     DROP TABLE IF EXISTS public."GlobalData";
@@ -21,6 +39,7 @@ def reset() :
     (
         "timestamp" timestamp(3) without time zone NOT NULL,
         motor_on boolean NOT NULL DEFAULT 'false',
+        cur_room integer NOT NULL,
         CONSTRAINT "GlobalData_pkey" PRIMARY KEY ("timestamp")
     )
 
@@ -41,8 +60,7 @@ def reset() :
         room_id integer NOT NULL,
         detect boolean NOT NULL DEFAULT 'false',
         variate boolean NOT NULL DEFAULT 'false',
-        variation integer NOT NULL DEFAULT 100,
-        is_on boolean NOT NULL DEFAULT 'true',
+        lum_prct integer NOT NULL DEFAULT 100,
         CONSTRAINT "RoomCommand_pkey" PRIMARY KEY ("timestamp", room_id)
     )
 
@@ -62,7 +80,7 @@ def reset() :
         "timestamp" timestamp(3) without time zone NOT NULL,
         room_id integer NOT NULL,
         is_on boolean NOT NULL DEFAULT 'false',
-        luminosity double precision NOT NULL DEFAULT 100,
+        lum_prct double precision NOT NULL DEFAULT 100,
         CONSTRAINT "RoomData_pkey" PRIMARY KEY ("timestamp", room_id)
     )
 
@@ -86,7 +104,7 @@ if __name__ == "__main__" :
     cur.execute("""-- sql
     SELECT table_name, column_name
     FROM information_schema.columns
-    WHERE table_name in ('GlobalData', 'RoomCommand', 'RoomData')
+    WHERE table_name in ('GlobalCommand', 'GlobalData', 'RoomCommand', 'RoomData')
     """)
 
     print(*cur.fetchall(), sep='\n')

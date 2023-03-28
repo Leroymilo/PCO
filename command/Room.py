@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 
 import streamlit as st
 from streamlit.delta_generator import DeltaGenerator as DG
@@ -12,6 +13,8 @@ class Room :
         self.id = id
         self.name = name
         self.cont: DG = None
+
+        self.is_on = False
 
         self.push(initial=True)
 
@@ -37,7 +40,7 @@ class Room :
             )
 
             st.slider(
-                "Luminosité",
+                "Luminosité (%)",
                 0, 100, 100, 1,
                 key=400+self.id,
                 on_change=self.push,
@@ -71,6 +74,7 @@ class Room :
     def push_mqtt(self, initial=False) :
         if initial :
             payload = {
+                "timestamp": datetime.now(),
                 "room_id": self.id,
                 "detect": False,
                 "variate": False,
@@ -79,21 +83,22 @@ class Room :
         
         else :
             payload = {
+                "timestamp": datetime.now(),
                 "room_id": self.id,
                 "detect": st.session_state[200+self.id],
                 "variate": st.session_state[300+self.id],
                 "lum_prct": st.session_state[400+self.id]
             }
 
-        print("mqtt payload :", payload)
+        # print("mqtt payload :", payload)
         
-        info = mqtt.client.publish("LEDS_PCO", payload=json.dumps(payload))
+        info = mqtt.client.publish("room_command", payload=json.dumps(payload))
         info.wait_for_publish()
         print("message published !")
 
     def push(self, initial=False) :
         print("pushing")
-        self.push_pgsql(initial=initial)
+        # self.push_pgsql(initial=initial)
         self.push_mqtt(initial=initial)
     
     def __hash__(self) -> int:

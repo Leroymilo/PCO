@@ -9,8 +9,9 @@ Most of these steps must be followed in order, don't try to parallelize them if 
 - `pip install -r requirements.txt`
 
 ## docker
-Install docker for your OS.
-In the terminal, change diectory to the docker folder : `cd docker`</br>
+Install docker for your OS.</br>
+Launch docker : `sudo systemctl start docker`</br>
+Change diectory to the docker folder : `cd docker`</br>
 Launch docker for the first time : `docker-compose up -d` (might need admin/sudo) (very long downloads)</br>
 Go back to the project folder : `cd ..`
 
@@ -64,6 +65,18 @@ There is nothing to setup.
 
 ## nifi
 Does not work.
+
+# Launch :
+
+- `sudo systemctl start docker`
+- `cd docker`
+- `docker-compose up -d`
+- `cd ..`
+- `source env/bin/activate` (lin) `env/Scripts/activate` (win)
+
+In separated terminals :
+- `streamlit run command/dashboard.py`
+- `streamlit run control/dashboard.py`
 
 # Modification :
 

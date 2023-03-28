@@ -1,1 +1,0 @@
-call mosquitto -c mosquitto.conf -v

@@ -1,3 +1,5 @@
+import json
+
 import streamlit as st
 
 import mqtt_init as mqtt
@@ -12,7 +14,9 @@ def refresh() :
         "timestamp": datetime.now(),
         "on_": st.session_state[0]
     }
-    mqtt.client.publish(topic="global_command")
+    info = mqtt.client.publish("global_command", json.dumps(payload))
+    info.wait_for_publish()
+    print("message published !")
 
 if __name__ == "__main__" :
     st.markdown("# État global")

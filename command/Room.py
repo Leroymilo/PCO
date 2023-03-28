@@ -92,7 +92,7 @@ class Room :
 
         # print("mqtt payload :", payload)
         
-        info = mqtt.client.publish("room_command", payload=json.dumps(payload))
+        info = mqtt.client.publish("room_command", json.dumps(payload))
         info.wait_for_publish()
         print("message published !")
 

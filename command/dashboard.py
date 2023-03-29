@@ -11,7 +11,7 @@ def refresh() :
         room.push()
     
     payload = {
-        "timestamp": datetime.now(),
+        "timestamp": int(datetime.now().timestamp()),
         "on_": st.session_state[0]
     }
     info = mqtt.client.publish("global_command", json.dumps(payload))

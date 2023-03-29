@@ -6,15 +6,11 @@ from streamlit.delta_generator import DeltaGenerator as DG
 
 import mqtt_init as mqtt
 
-import pgsql_init as pgsql
-
 class Room :
     def __init__(self, id: int, name: str) -> None:
         self.id = id
         self.name = name
         self.cont: DG = None
-
-        self.is_on = False
 
         self.push(initial=True)
 
@@ -47,34 +43,10 @@ class Room :
                 disabled=(not var)
             )
 
-    def push_pgsql(self, initial=False) :
-
-        if initial :
-            values = ("FALSE", "FALSE", "100")
-        
-        else :
-            values = tuple(map(str, [
-                st.session_state[100*i+self.id] for i in range(2, 5)
-            ]))
-
-        query = f"""-- sql
-        INSERT INTO public."RoomCommand"
-        VALUES (
-            NOW()::TIMESTAMP,
-            {self.id},
-            {', '.join(values)},
-            TRUE
-        )
-        """
-
-        pgsql.cur.execute(query)
-
-        pgsql.con.commit()
-
-    def push_mqtt(self, initial=False) :
+    def push(self, initial=False) :
         if initial :
             payload = {
-                "timestamp": datetime.now(),
+                "timestamp": int(datetime.now().timestamp()),
                 "room_id": self.id,
                 "detect": False,
                 "variate": False,
@@ -83,7 +55,7 @@ class Room :
         
         else :
             payload = {
-                "timestamp": datetime.now(),
+                "timestamp": int(datetime.now().timestamp()),
                 "room_id": self.id,
                 "detect": st.session_state[200+self.id],
                 "variate": st.session_state[300+self.id],
@@ -95,11 +67,6 @@ class Room :
         info = mqtt.client.publish("room_command", json.dumps(payload))
         info.wait_for_publish()
         print("message published !")
-
-    def push(self, initial=False) :
-        print("pushing")
-        # self.push_pgsql(initial=initial)
-        self.push_mqtt(initial=initial)
     
     def __hash__(self) -> int:
         return self.id

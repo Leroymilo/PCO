@@ -2,9 +2,21 @@
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 
-int LED_PINS[] = {16, 5, 4, 0};
-int nb_leds = 4;
+const int LED_PINS[] = {16, 5, 4, 0};
+const int nb_leds = 4;
 
+// Command variables
+
+bool on_ = false;
+bool detect[nb_leds];
+bool variate[nb_leds];
+int lum_prct[nb_leds];
+
+// Control variables
+
+int cur_room = 0;
+bool motor_on = false;
+bool is_on[nb_leds];
 
 // PARTIE CONNEXION =====================================================================================================
 
@@ -15,7 +27,8 @@ const char* password = "";
 const char* mqtt_server = "localhost";
 const int mqtt_port = 1883;
 
-const char* mqtt_topic = "LEDS_PCO";
+const char* mqtt_topic_room = "room_command";
+const char* mqtt_topic_global = "global_command";
 const String mqtt_clientid = "PCO_LEDS_ESP";
 
 WiFiClient espClient;
@@ -53,7 +66,8 @@ void reconnect() {
     {
       Serial.println("connected");
      //once connected to MQTT broker, subscribe command if any
-      client.subscribe(mqtt_topic);
+      client.subscribe(mqtt_topic_room);
+      client.subscribe(mqtt_topic_global);
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
@@ -80,7 +94,7 @@ void callback(char* topic, byte* payload, unsigned int length)
 
   // Parsing data as JSON of table row :
   const size_t capacity = JSON_OBJECT_SIZE(5);
-  StaticJsonDocument<128> doc;
+  StaticJsonDocument<256> doc;
 
   auto error = deserializeJson(doc, sMsg);
   if (error) {
@@ -89,34 +103,67 @@ void callback(char* topic, byte* payload, unsigned int length)
     return;
   }
 
-  // Decode JSON/Extract values
-  int room_id = doc["room_id"];
-  Serial.print("room_id :");
-  Serial.println(room_id);
-  
+  if (topic == mqtt_topic_room)
+  {
+    int room_id = doc["room_id"];
+    variate[room_id] = doc["variate"];
+    detect[room_id] = doc["detect"];
+    lum_prct[room_id] = doc["lum_prct"];
+    
+    update_room(room_id);
+  }
+
+  else if (topic == mqtt_topic_global)
+  {
+    on_ = doc["on_"];
+    motor_on = on_;
+
+    for (int i = 0; i < nb_leds; i++)
+    {
+      update_room(i);
+    }
+  }
+}
+
+void update_room(int room_id) {    
   if (room_id >= 0 && room_id < nb_leds)
   {
-    
-    bool variate = doc["variate"];
-    Serial.print("variate :");
-    Serial.println(variate);
-
-    if (variate)
+    if (!on_)
     {
-      int lum_prct = doc["lum_prct"];
-      Serial.print("luminosity :");
-      Serial.println(lum_prct);
+      is_on[room_id] = false;
+      return;
+    }
 
-      float lum = lum_prct*255/100;
-      analogWrite(LED_PINS[room_id], lum);
+    if (!detect[room_id] || (detect[room_id] && room_id == cur_room))
+    {
+      if (variate[room_id])
+      {
+        float lum = lum_prct[room_id]*255/100;
+        analogWrite(LED_PINS[room_id], lum);
+        is_on[room_id] = (lum > 0);
+      }
+
+      else
+      {
+        analogWrite(LED_PINS[room_id], 255);
+        is_on[room_id] = true;
+      }
     }
 
     else
     {
-      analogWrite(LED_PINS[room_id], 255);
+      analogWrite(LED_PINS[room_id], 0);
+      is_on[room_id] = false;
     }
   }
+}
 
+
+
+// PARTIE RELEVE DATA =======================================================================================================
+
+void push() {
+  
 }
 
 
@@ -142,5 +189,7 @@ void loop() {
     reconnect();
   }
   client.loop();
+  delay(10);
+  push();
 
 }

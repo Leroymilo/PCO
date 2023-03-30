@@ -163,7 +163,35 @@ void update_room(int room_id) {
 // PARTIE RELEVE DATA =======================================================================================================
 
 void push() {
+  auto now = millis();
   
+  // sending global control
+  StaticJsonDocument<48> doc;
+
+  doc["timestamp"] = now;
+  doc["motor_on"] = motor_on;
+  doc["cur_room"] = cur_room;
+
+  char output[100];
+  serializeJson(doc, output);
+
+  client.publish("global_data", output);
+
+  // sending room control
+  for (int i = 0; i < nb_leds; i++)
+  {
+    StaticJsonDocument<64> doc;
+
+    doc["timestamp"] = now;
+    doc["room_id"] = i;
+    doc["is_on"] = is_on[i];
+    doc["lum_prct"] = lum_prct[i];
+
+    char output[100];
+    serializeJson(doc, output);
+
+    client.publish("room_data", output);
+  }
 }
 
 

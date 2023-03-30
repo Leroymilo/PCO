@@ -6,6 +6,9 @@ from streamlit.delta_generator import DeltaGenerator as DG
 
 import mqtt_init as mqtt
 
+def get_time() :
+    return int(datetime.now().timestamp() * 1000)
+
 class Room :
     def __init__(self, id: int, name: str) -> None:
         self.id = id
@@ -46,7 +49,7 @@ class Room :
     def push(self, initial=False) :
         if initial :
             payload = {
-                "timestamp": int(datetime.now().timestamp()),
+                "timestamp": get_time(),
                 "room_id": self.id,
                 "detect": False,
                 "variate": False,
@@ -55,7 +58,7 @@ class Room :
         
         else :
             payload = {
-                "timestamp": int(datetime.now().timestamp()),
+                "timestamp": get_time(),
                 "room_id": self.id,
                 "detect": st.session_state[200+self.id],
                 "variate": st.session_state[300+self.id],

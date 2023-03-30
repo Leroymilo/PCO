@@ -2,7 +2,7 @@ import json
 
 import streamlit as st
 
-import command.mqtt_init as mqtt
+import mqtt_init as mqtt
 
 from Room import *
 
@@ -11,7 +11,7 @@ def refresh() :
         room.push()
     
     payload = {
-        "timestamp": int(datetime.now().timestamp()),
+        "timestamp": get_time(),
         "on_": st.session_state[0]
     }
     info = mqtt.client.publish("global_command", json.dumps(payload))

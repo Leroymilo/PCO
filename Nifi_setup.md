@@ -1,6 +1,8 @@
 DBCPConnectionPool : 
-- database connection URL : postgresql://postgres:password@localhost:5432/RealTime
-- database driver class name : cdata.jdbc.postgresql.PostgreSQLDriver
+- database connection URL : jdbc:postgresql://postgres01:5432/RealTime
+- database driver class name : org.postgresql.Driver
+- user : postgres
+- password : password
 
 MQTT :
 - broker URI : tcp://localhost:1883

@@ -44,7 +44,9 @@ def on_room_command(client: mqtt.Client, userdata, message: mqtt.MQTTMessage) :
     global variate
     global lum_prct
 
-    payload = json.loads(message)
+    print("command received")
+
+    payload = json.loads(message.payload)
     room_id = payload["room_id"]
     detect[room_id] = payload["detect"]
     variate[room_id] = payload["variate"]
@@ -57,7 +59,7 @@ def on_global_command(client: mqtt.Client, userdata, message: mqtt.MQTTMessage) 
 
     print("command received")
 
-    payload = json.loads(message)
+    payload = json.loads(message.payload)
     on_ = payload["on_"]
 
     for i in range(nb_leds) :

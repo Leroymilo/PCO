@@ -21,10 +21,10 @@ bool is_on[nb_leds];
 // PARTIE CONNEXION =====================================================================================================
 
 // Update these with values suitable for your network.
-const char* ssid = "";
-const char* password = "";
+const char* ssid = "Chiaomi";
+const char* password = "akinoMD4C";
 
-const char* mqtt_server = "localhost";
+const char* mqtt_server = "192.168.1.26";
 const int mqtt_port = 1883;
 
 const char* mqtt_topic_room = "room_command";
@@ -92,6 +92,10 @@ void callback(char* topic, byte* payload, unsigned int length)
     sMsg = sMsg + (char)payload[i];
   }
 
+  Serial.print("Message received on topic ");
+  Serial.println(topic);
+  Serial.println(sMsg);
+
   // Parsing data as JSON of table row :
   const size_t capacity = JSON_OBJECT_SIZE(5);
   StaticJsonDocument<256> doc;
@@ -103,8 +107,10 @@ void callback(char* topic, byte* payload, unsigned int length)
     return;
   }
 
-  if (topic == mqtt_topic_room)
+  if (strcmp(topic, mqtt_topic_room) == 0)
   {
+    Serial.println("in room");
+    
     int room_id = doc["room_id"];
     variate[room_id] = doc["variate"];
     detect[room_id] = doc["detect"];
@@ -113,10 +119,17 @@ void callback(char* topic, byte* payload, unsigned int length)
     update_room(room_id);
   }
 
-  else if (topic == mqtt_topic_global)
+  else if (strcmp(topic, mqtt_topic_global) == 0)
   {
+    Serial.println("in global");
+    
     on_ = doc["on_"];
     motor_on = on_;
+
+    Serial.print("global on : ");
+    Serial.print(on_);
+    Serial.print("motor on : ");
+    Serial.println(motor_on);
 
     for (int i = 0; i < nb_leds; i++)
     {
@@ -175,6 +188,8 @@ void push() {
   char output[100];
   serializeJson(doc, output);
 
+  Serial.println("Sending on global_data :");
+  Serial.println(output);
   client.publish("global_data", output);
 
   // sending room control
@@ -213,11 +228,14 @@ void setup() {
 // the loop function runs over and over again forever
 void loop() {
 
-  if (!client.connected()) {
-    reconnect();
+  for (int i = 0; i < 10; i++)
+  {
+    if (!client.connected()) {
+      reconnect();
+    }
+    client.loop();
+    delay(100);
   }
-  client.loop();
-  delay(10);
   push();
 
 }

@@ -1,6 +1,7 @@
 import paho.mqtt.client as mqtt
 
 client = mqtt.Client(client_id="Command Dashboard", clean_session=True, userdata=None, protocol=mqtt.MQTTv311, transport="tcp")
+print("started mqtt client")
 
 client.connect("localhost", port=1883, keepalive=60, bind_address="")
 

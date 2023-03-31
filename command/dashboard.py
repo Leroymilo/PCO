@@ -2,11 +2,10 @@ import json
 
 import streamlit as st
 
-import mqtt_init as mqtt
-
 from Room import *
 
 def refresh() :
+
     for room in rooms :
         room.push()
     

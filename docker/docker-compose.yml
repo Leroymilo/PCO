@@ -7,9 +7,6 @@
 # docker-compose ps
 # docker exec -it <container> /bin/bash
 
-
-
-
 version: "3.7"
 
 services:
@@ -80,6 +77,27 @@ services:
       - pgadmin-data:/var/lib/pgadmin/
     ports:
       - 8081:80
+    networks:
+      - data_manufacture
+  
+
+  command_dashboard:
+    build:
+      context: ./command
+      dockerfile: command.dockerfile
+    container_name: command01
+    ports:
+      - 8501:8501
+    networks:
+      - data_manufacture
+
+  control_dashboard:
+    build:
+      context: ./control
+      dockerfile: control.dockerfile
+    container_name: control01
+    ports:
+      - 8502:8502
     networks:
       - data_manufacture
 

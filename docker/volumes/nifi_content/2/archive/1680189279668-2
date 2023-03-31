@@ -1,1 +1,0 @@
-INSERT INTO "RoomCommand" ("timestamp", "room_id", "detect", "variate", "lum_prct") VALUES (?, ?, ?, ?, ?)INSERT INTO "RoomCommand" ("timestamp", "room_id", "detect", "variate", "lum_prct") VALUES (?, ?, ?, ?, ?)

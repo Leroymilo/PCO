@@ -1,6 +1,13 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
+
+#define ARDUINOJSON_USE_LONG_LONG 1
 #include <ArduinoJson.h>
+
+#include <NTPClient.h>
+#include <WiFiUdp.h>
+
+// Constants
 
 const int LED_PINS[] = {16, 5, 4, 0};
 const int nb_leds = 4;
@@ -18,37 +25,44 @@ int cur_room = 0;
 bool motor_on = false;
 bool is_on[nb_leds];
 
+// Setup for getting real time
+
+uint64_t origin;
+
 // PARTIE CONNEXION =====================================================================================================
 
 // Update these with values suitable for your network.
 const char* ssid = "";
 const char* password = "";
 
-const char* mqtt_server = "192.168.1.26";
+const char* mqtt_server = "192.168.1.26"; // where the mqtt broker is
 const int mqtt_port = 1883;
 
 const char* mqtt_topic_room = "room_command";
 const char* mqtt_topic_global = "global_command";
-const String mqtt_clientid = "PCO_LEDS_ESP";
+const String mqtt_clientid = "PCO_ESP";
 
 WiFiClient espClient;
 PubSubClient client(espClient);
 
+// Define NTP Client to get time
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP);
+
 void setup_wifi() {
-   delay(100);
+  delay(100);
   // We start by connecting to a WiFi network
-    Serial.print("Connecting to ");
-    Serial.println(ssid);
-    WiFi.begin(ssid, password);
-    while (WiFi.status() != WL_CONNECTED) 
-    {
-      delay(500);
-      Serial.print(".");
-    }
-  randomSeed(micros());
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, password);
+  Serial.print("Connecting to ");
+  Serial.println(ssid);
+  while (WiFi.status() != WL_CONNECTED) 
+  {
+    delay(500);
+    Serial.print(".");
+  }
   Serial.println("");
-  Serial.println("WiFi connected");
-  Serial.println("IP address: ");
+  Serial.print("WiFi connected at : ");
   Serial.println(WiFi.localIP());
 }
 
@@ -57,7 +71,6 @@ void reconnect() {
   while (!client.connected()) 
   {
     Serial.print("Attempting MQTT connection...");
-    // Create a random client ID
     String clientId = mqtt_clientid;
     // Attempt to connect
     //if you MQTT broker has clientID,username and password
@@ -78,6 +91,13 @@ void reconnect() {
   }
 } //end reconnect()
 
+// Function that gets current epoch time
+uint64_t getTime() {
+  timeClient.update();
+  uint64_t now = timeClient.getEpochTime();
+  return now;
+}
+
 
 
 // PARTIE TRAITEMENT DES MESSAGES =====================================================================================================
@@ -92,10 +112,6 @@ void callback(char* topic, byte* payload, unsigned int length)
     sMsg = sMsg + (char)payload[i];
   }
 
-  Serial.print("Message received on topic ");
-  Serial.println(topic);
-  Serial.println(sMsg);
-
   // Parsing data as JSON of table row :
   const size_t capacity = JSON_OBJECT_SIZE(5);
   StaticJsonDocument<256> doc;
@@ -107,10 +123,11 @@ void callback(char* topic, byte* payload, unsigned int length)
     return;
   }
 
+  Serial.print("received message on topic ");
+  Serial.println(topic);
+
   if (strcmp(topic, mqtt_topic_room) == 0)
-  {
-    Serial.println("in room");
-    
+  {    
     int room_id = doc["room_id"];
     variate[room_id] = doc["variate"];
     detect[room_id] = doc["detect"];
@@ -121,15 +138,8 @@ void callback(char* topic, byte* payload, unsigned int length)
 
   else if (strcmp(topic, mqtt_topic_global) == 0)
   {
-    Serial.println("in global");
-    
     on_ = doc["on_"];
     motor_on = on_;
-
-    Serial.print("global on : ");
-    Serial.print(on_);
-    Serial.print("motor on : ");
-    Serial.println(motor_on);
 
     for (int i = 0; i < nb_leds; i++)
     {
@@ -176,10 +186,10 @@ void update_room(int room_id) {
 // PARTIE RELEVE DATA =======================================================================================================
 
 void push() {
-  auto now = millis();
+  auto now = origin + millis();
   
   // sending global control
-  StaticJsonDocument<48> doc;
+  StaticJsonDocument<64> doc;
 
   doc["timestamp"] = now;
   doc["motor_on"] = motor_on;
@@ -188,14 +198,12 @@ void push() {
   char output[100];
   serializeJson(doc, output);
 
-  Serial.println("Sending on global_data :");
-  Serial.println(output);
   client.publish("global_data", output);
 
   // sending room control
   for (int i = 0; i < nb_leds; i++)
   {
-    StaticJsonDocument<64> doc;
+    StaticJsonDocument<128> doc;
 
     doc["timestamp"] = now;
     doc["room_id"] = i;
@@ -223,11 +231,13 @@ void setup() {
   setup_wifi();
   client.setServer(mqtt_server, mqtt_port);
   client.setCallback(callback);
+  timeClient.begin();
+
+  origin = getTime() * 1000 - millis();
 }
 
 // the loop function runs over and over again forever
 void loop() {
-
   for (int i = 0; i < 10; i++)
   {
     if (!client.connected()) {
@@ -237,5 +247,4 @@ void loop() {
     delay(100);
   }
   push();
-
 }

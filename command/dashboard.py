@@ -15,7 +15,7 @@ def refresh() :
     }
     info = mqtt.client.publish("global_command", json.dumps(payload))
     info.wait_for_publish()
-    print("message published !")
+    # print("message published !")
 
 if __name__ == "__main__" :
     st.markdown("# État global")

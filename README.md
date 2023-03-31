@@ -43,28 +43,34 @@ If the environment is not activated, refer to the Setup/python part of this doc.
 Launch the python script to create the tables : `python command/pgsql_init.py`.</br>
 The output in terminal should be :
 ```logs
-$ python command/pgsql_init.py 
+$ python control/pgsql_reset.py 
 Reseting tables...
 Tables reset !
+('GlobalCommand', 'timestamp')
+('GlobalCommand', 'on_')
 ('GlobalData', 'timestamp')
 ('GlobalData', 'motor_on')
+('GlobalData', 'cur_room')
 ('RoomCommand', 'timestamp')
 ('RoomCommand', 'room_id')
 ('RoomCommand', 'detect')
 ('RoomCommand', 'variate')
-('RoomCommand', 'variation')
-('RoomCommand', 'is_on')
+('RoomCommand', 'lum_prct')
 ('RoomData', 'timestamp')
 ('RoomData', 'room_id')
 ('RoomData', 'is_on')
-('RoomData', 'luminosity')
+('RoomData', 'lum_prct')
 ```
 
 ## rabbitMQ
 There is nothing to setup.
 
 ## nifi
-Does not work.
+Go to https://localhost:8443/nifi and connect with username : admin, password : password123456</br>
+Upload `PCO_nifi_template.xml` to nifi :</br>
+![upload template button](upload_template.png)</br>
+Go into right-click -> configure -> controller service and click on the lightning on the right of the line of 'DBCPConnectionPool'</br>
+You can now launch the flow.
 
 # Launch :
 

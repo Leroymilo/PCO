@@ -69,7 +69,7 @@ class Room :
         
         info = mqtt.client.publish("room_command", json.dumps(payload))
         info.wait_for_publish()
-        print("message published !")
+        # print("message published !")
     
     def __hash__(self) -> int:
         return self.id

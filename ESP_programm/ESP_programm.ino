@@ -35,7 +35,7 @@ uint64_t origin;
 const char* ssid = "";
 const char* password = "";
 
-const char* mqtt_server = "192.168.1.26"; // where the mqtt broker is
+const char* mqtt_server = "192.168.219.26"; // where the mqtt broker is
 const int mqtt_port = 1883;
 
 const char* mqtt_topic_room = "room_command";
@@ -140,11 +140,8 @@ void callback(char* topic, byte* payload, unsigned int length)
   {
     on_ = doc["on_"];
     motor_on = on_;
-
-    for (int i = 0; i < nb_leds; i++)
-    {
-      update_room(i);
-    }
+    Serial.print("new global state : ");
+    Serial.println(on_);
   }
 }
 
@@ -154,6 +151,7 @@ void update_room(int room_id) {
     if (!on_)
     {
       is_on[room_id] = false;
+      analogWrite(LED_PINS[room_id], 0);
       return;
     }
 
@@ -208,9 +206,16 @@ void push() {
     doc["timestamp"] = now;
     doc["room_id"] = i;
     doc["is_on"] = is_on[i];
-    doc["lum_prct"] = lum_prct[i];
+    if (variate[i])
+    {
+      doc["lum_prct"] = lum_prct[i];
+    }
+    else
+    {
+      doc["lum_prct"] = 100;
+    }
 
-    char output[100];
+    char output[128];
     serializeJson(doc, output);
 
     client.publish("room_data", output);

@@ -81,25 +81,28 @@ services:
       - data_manufacture
   
 
-  command_dashboard:
-    build:
-      context: ./command
-      dockerfile: command.dockerfile
-    container_name: command01
-    ports:
-      - 8501:8501
-    networks:
-      - data_manufacture
+  # code for putting streamlit in docker, not working for some reason
 
-  control_dashboard:
-    build:
-      context: ./control
-      dockerfile: control.dockerfile
-    container_name: control01
-    ports:
-      - 8502:8502
-    networks:
-      - data_manufacture
+  # command_dashboard:
+  #   build:
+  #     context: ./command/
+  #     dockerfile: command.dockerfile
+  #   container_name: command01
+  #   ports:
+  #     - 8501:8501
+  #   networks:
+  #     - data_manufacture
+
+  # control_dashboard:
+  #   build:
+  #     context: ./control
+  #     dockerfile: control.dockerfile
+  #   container_name: control01
+  #   ports:
+  #     - 8502:8502
+  #   networks:
+  #     - data_manufacture
+
 
 volumes:
   pgadmin-data:

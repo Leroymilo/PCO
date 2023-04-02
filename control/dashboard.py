@@ -9,15 +9,17 @@ import numpy as np
 
 import pgsql_init as psql
 
-# Some matplotlib settings :
-plt.xticks(rotation=90)
+st.set_page_config(layout="wide")
+
 
 # function to get data for example graph (sliding average over 10 seconds on the last 2 minutes)
 def get_use_rate_data() -> pd.DataFrame :
 
     # Fetching data from database
     psql.cur.execute("""-- sql
-    SELECT cast(extract(epoch FROM timestamp) as float) as tmstmp, SUM(lum_prct)/4 as use_rate
+    SELECT
+        cast(extract(epoch FROM timestamp) as float) as tmstmp,
+        SUM(lum_prct * cast(is_on as integer))/4 as use_rate
     FROM public."RoomData"
     WHERE timestamp > ((SELECT MAX(timestamp) from public."RoomData") - INTERVAL '2 minutes')
     GROUP BY tmstmp
@@ -94,6 +96,7 @@ if __name__ == "__main__" :
         # setting axes limits for aesthetics
         ax.set_ylim(-2, 102)
         ax.set_xlim(datetime.now()-timedelta(minutes=1), datetime.now())
+        plt.xticks(rotation=90)
 
         # plotting on dashboard
         graph11.pyplot(fig)

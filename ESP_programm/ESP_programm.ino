@@ -41,7 +41,7 @@ uint64_t origin;
 const char* ssid = "";
 const char* password = "";
 
-const char* mqtt_server = "192.168.252.26"; // where the mqtt broker is
+const char* mqtt_server = ""; // where the mqtt broker is
 const int mqtt_port = 1883;
 
 const char* mqtt_topic_room = "room_command";

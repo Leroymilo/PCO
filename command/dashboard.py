@@ -68,6 +68,3 @@ if __name__ == "__main__" :
 
     for i in range(nb_rooms) :
         display_room_settings(i)
-    
-    if mqtt.client.want_write() :
-        mqtt.client.loop_write()

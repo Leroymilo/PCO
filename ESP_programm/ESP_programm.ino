@@ -10,7 +10,13 @@
 // Constants
 
 const int LED_PINS[] = {16, 5, 4, 0};
+const int button = 2;
 const int nb_leds = 4;
+
+// variables for sensor
+
+bool sens = false;
+bool prev_sens = false;
 
 // Command variables
 
@@ -35,7 +41,7 @@ uint64_t origin;
 const char* ssid = "";
 const char* password = "";
 
-const char* mqtt_server = "192.168.219.26"; // where the mqtt broker is
+const char* mqtt_server = "192.168.252.26"; // where the mqtt broker is
 const int mqtt_port = 1883;
 
 const char* mqtt_topic_room = "room_command";
@@ -232,6 +238,7 @@ void setup() {
     pinMode(LED_PINS[led_i], OUTPUT);
     analogWrite(LED_PINS[led_i], LOW);
   }
+  pinMode(button, INPUT);
   
   setup_wifi();
   client.setServer(mqtt_server, mqtt_port);
@@ -249,6 +256,17 @@ void loop() {
       reconnect();
     }
     client.loop();
+
+    // sensor handling
+    sens = (digitalRead(button) == HIGH);
+    if (sens && !prev_sens) {
+      int prev_cur_room = cur_room;
+      cur_room = (cur_room + 1) % nb_leds;
+      update_room(cur_room);
+      update_room(prev_cur_room);
+    }
+    prev_sens = sens;
+    
     delay(100);
   }
   push();

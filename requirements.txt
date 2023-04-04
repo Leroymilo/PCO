@@ -1,5 +1,6 @@
 streamlit==1.19.0
+streamlit-toggle-switch==1.0.2
 matplotlib==3.6.3
-psycopg2==2.9.5; platform_system == "Windows"
-psycopg2-binary; platform_system != "Windows"
+psycopg2==2.9.6; platform_system == "Windows"
+psycopg2-binary==2.9.6; platform_system != "Windows"
 paho-mqtt==1.6.1
